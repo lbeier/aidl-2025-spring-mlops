@@ -41,6 +41,7 @@ if __name__ == "__main__":
         metric="val_loss",
         mode="min",
         num_samples=5,
+        resources_per_trial={"cpu": 1, "gpu": 1 if torch.cuda.is_available() else 0},
         config={
             "hyperparam_1": tune.uniform(1, 10),
             "hyperparam_2": tune.grid_search(["relu", "tanh"]),
