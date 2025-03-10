@@ -16,7 +16,7 @@ Test loss=0.14 acc=0.96
 
 And with `main_hyperparam_optimize.py`, these are the set of hyperparameters that gave best results:
 
-```json
+```python
 {
     'lr': 0.0006913958136676372,
     'batch_size': 64,
