@@ -8,7 +8,13 @@ from torchvision import transforms
 import numpy as np
 import matplotlib.pyplot as plt
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device = torch.device("cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif torch.mps.is_available():
+    device = torch.device("mps")
+
+print("Using device: {}".format(device))
 
 def compute_accuracy(predicted_batch: torch.Tensor, label_batch: torch.Tensor) -> int:
     pred = predicted_batch.argmax(dim=1, keepdim=True) # get the index of the max log-probability
