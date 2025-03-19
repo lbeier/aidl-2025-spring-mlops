@@ -5,9 +5,13 @@ from torch.utils.data.dataset import random_split
 from app.model import SentimentAnalysis
 from utils import YelpReviewPolarityDatasetLoader
 
+device = torch.device("cpu")
+# if torch.cuda.is_available():
+#     device = torch.device("cuda")
+# elif torch.backends.mps.is_available():
+#     device = torch.device("mps")
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+print("Using device: {}".format(device))
 
 def train(dataloader):
     model.train()
@@ -16,8 +20,14 @@ def train(dataloader):
     train_loss = 0
     train_acc = 0
     for text, offsets, label in dataloader:
-        # START TODO: 
+        # START TODO:
         # TODO complete the training code. The inputs of the model are text and offsets
+        text, offsets, label = text.to(device), offsets.to(device), label.to(device)
+        optimizer.zero_grad()
+        output = model(text, offsets)
+        loss = criterion(output, label)
+        loss.backward()
+        optimizer.step()
 
         train_loss += loss.item() * len(output)
         train_acc += (output.argmax(1) == label).sum().item()
@@ -27,7 +37,7 @@ def train(dataloader):
 
     return train_loss / len(dataloader.dataset), train_acc / len(dataloader.dataset)
 
-
+@torch.no_grad() # decorator: avoid computing gradients
 def test(dataloader: DataLoader):
     model.eval()
 
@@ -35,7 +45,9 @@ def test(dataloader: DataLoader):
     acc = 0
     # TODO complete the evaluation code. The inputs of the model are text and offsets
     for text, offsets, label in dataloader:
-        ...
+        text, offsets, label = text.to(device), offsets.to(device), label.to(device)
+        output = model(text, offsets)
+        loss_val = criterion(output, label)
 
         loss += loss_val.item() * len(output)
         acc += (output.argmax(1) == label).sum().item()
@@ -65,8 +77,8 @@ if __name__ == "__main__":
     # Load the model
     # START TODO / END TODO: load the model
     model = SentimentAnalysis(VOCAB_SIZE, EMBED_DIM, NUM_CLASS).to(device)
-        
-    # We will use CrossEntropyLoss even though we are doing binary classification 
+
+    # We will use CrossEntropyLoss even though we are doing binary classification
     # because the code is ready to also work for many classes
     criterion = torch.nn.CrossEntropyLoss().to(device)
 
@@ -77,16 +89,17 @@ if __name__ == "__main__":
     # Split train and val datasets
     # TODO split `train_val_dataset` in `train_dataset` and `valid_dataset`. The size of train dataset should be 95%
 
-    train_dataset, valid_dataset = ...
-    
-    # DataLoader needs an special function to generate the batches. 
-    # Since we will have inputs of varying size, we will concatenate 
+    train_dataset, valid_dataset = torch.utils.data.random_split(train_val_dataset, [0.95, 0.05])
+
+    # DataLoader needs an special function to generate the batches.
+    # Since we will have inputs of varying size, we will concatenate
     # all the inputs in a single vector and create a vector with the "offsets" between inputs.
     # You can check the `generate_batch` function for more info.
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=yelp_loader.generate_batch)
     val_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=yelp_loader.generate_batch)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=yelp_loader.generate_batch)
 
+    print("Data loaded")
 
     for epoch in range(N_EPOCHS):
 

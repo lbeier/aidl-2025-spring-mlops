@@ -62,8 +62,8 @@ def collate_batch(batch):
 class YelpReviewPolarityDatasetLoader:
     def __init__(self, ngrams: int = 1, batch_size: int = 16, device = None):
         self.batch_size = batch_size
-        self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
+        self.device = device
+
         self._load_datasets()
         self.vocab = Vocabulary(self.train_texts)
     
