@@ -14,19 +14,21 @@ from torch.utils.tensorboard import SummaryWriter
 class TensorboardLogger(Logger):
 
     def __init__(
-        self, 
-        task: TaskType, 
+        self,
+        task: TaskType,
     ):
         # Define the folder where we will store all the tensorboard logs
         logdir = os.path.join("logs", f"{task}-{datetime.now().strftime('%Y%m%d-%H%M%S')}")
 
         # TODO: Initialize Tensorboard Writer with the previous folder 'logdir'
+        self.writer = SummaryWriter(log_dir=logdir)
+
 
 
     def log_reconstruction_training(
-        self, 
-        model: nn.Module, 
-        epoch: int, 
+        self,
+        model: nn.Module,
+        epoch: int,
         train_loss_avg: np.ndarray,
         val_loss_avg: np.ndarray,
         reconstruction_grid: Optional[torch.Tensor] = None,
@@ -34,28 +36,29 @@ class TensorboardLogger(Logger):
 
         # TODO: Log train reconstruction loss to tensorboard.
         #  Tip: use "Reconstruction/train_loss" as tag
+        self.writer.add_scalar("Reconstruction/train_loss", train_loss_avg.mean(), epoch)
 
 
         # TODO: Log validation reconstruction loss to tensorboard.
         #  Tip: use "Reconstruction/val_loss" as tag
+        self.writer.add_scalar("Reconstruction/val_loss", val_loss_avg.mean(), epoch)
 
 
         # TODO: Log a batch of reconstructed images from the validation set.
         #  Use the reconstruction_grid variable returned above.
+        self.writer.add_image("Reconstruction/validation_images", reconstruction_grid, epoch)
 
 
         # TODO: Log the weights values and grads histograms.
         #  Tip: use f"{name}/value" and f"{name}/grad" as tags
         for name, weight in model.encoder.named_parameters():
-            continue # remove this line when you complete the code
-
-
-        pass
+            self.writer.add_histogram(f"{name}/value", weight, epoch)
+            self.writer.add_histogram(f"{name}/grad", weight.grad, epoch)
 
 
 
     def log_classification_training(
-        self, 
+        self,
         epoch: int,
         train_loss_avg: np.ndarray,
         val_loss_avg: np.ndarray,
@@ -64,29 +67,30 @@ class TensorboardLogger(Logger):
         fig: plt.Figure,
     ):
         # TODO: Log confusion matrix figure to tensorboard
+        self.writer.add_figure("Classification/confusion_matrix", fig, global_step=epoch)
 
         # TODO: Log validation loss to tensorboard.
         #  Tip: use "Classification/val_loss" as tag
-
+        self.writer.add_scalar("Classification/val_loss", val_loss_avg, global_step=epoch)
 
         # TODO: Log validation accuracy to tensorboard.
         #  Tip: use "Classification/val_acc" as tag
+        self.writer.add_scalar("Classification/val_acc", val_acc_avg, global_step=epoch)
 
 
         # TODO: Log training loss to tensorboard.
         #  Tip: use "Classification/train_loss" as tag
+        self.writer.add_scalar("Classification/train_loss", train_loss_avg, global_step=epoch)
 
 
         # TODO: Log training accuracy to tensorboard.
         #  Tip: use "Classification/train_acc" as tag
-
-
-        pass
+        self.writer.add_scalar("Classification/train_acc", train_acc_avg, global_step=epoch)
 
 
     def log_model_graph(
-        self, 
-        model: nn.Module, 
+        self,
+        model: nn.Module,
         train_loader: torch.utils.data.DataLoader,
     ):
         batch, _ = next(iter(train_loader))
@@ -101,8 +105,8 @@ class TensorboardLogger(Logger):
 
 
     def log_embeddings(
-        self, 
-        model: nn.Module, 
+        self,
+        model: nn.Module,
         train_loader: torch.utils.data.DataLoader,
     ):
         list_latent = []
@@ -122,3 +126,6 @@ class TensorboardLogger(Logger):
 
         # Be patient! Projector logs can take a while
 
+
+    def close(self):
+        self.writer.close()

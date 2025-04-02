@@ -4,7 +4,7 @@ import torch.nn as nn
 from typing import Optional
 import matplotlib.pyplot as plt
 
-
+# This is just an interface
 class Logger:
     def log_reconstruction_training(
         self,
