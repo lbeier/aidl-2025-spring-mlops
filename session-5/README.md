@@ -8,7 +8,7 @@ on a subset of the MNIST dataset. In this hands-on the training itself it's not 
 ### With Conda
 Create a conda environment by running
 ```
-conda create --name aidl-session-5 python=3.8
+conda create --name aidl-session-5 python=3.11
 ```
 Then, activate the environment
 ```
